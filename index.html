@@ -1,0 +1,1089 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deeplink - Умное сокращение ссылок</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        :root {
+            --primary-green: #10B981;
+            --deep-green: #059669;
+            --light-green: #D1FAE5;
+            --dark-green: #047857;
+            --gradient-green: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            --text-dark: #1F2937;
+            --text-light: #6B7280;
+            --white: #FFFFFF;
+            --gray-bg: #F9FAFB;
+            --card-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.1);
+            --hover-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.2);
+        }
+
+        body {
+            background-color: var(--gray-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: var(--white);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            padding: 18px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-green);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .logo-text {
+            font-size: 26px;
+            font-weight: 800;
+            background: var(--gradient-green);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 32px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            padding: 8px 0;
+            position: relative;
+        }
+
+        nav a:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 3px;
+            background: var(--gradient-green);
+            bottom: 0;
+            left: 0;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        nav a:hover {
+            color: var(--primary-green);
+        }
+
+        nav a:hover:after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 100px 0 70px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero:before {
+            content: '';
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, var(--light-green) 0%, transparent 70%);
+            top: -400px;
+            right: -300px;
+            z-index: -1;
+            opacity: 0.7;
+        }
+
+.hero h2 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: var(--text-dark);
+            font-weight: 800;
+            line-height: 1.2;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--text-light);
+            max-width: 700px;
+            margin: 0 auto 50px;
+        }
+
+        /* URL Shortener */
+        .shortener-container {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: var(--card-shadow);
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .shortener-container:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 17px;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: 22px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-green);
+            font-size: 18px;
+        }
+
+        .input-with-icon input {
+            width: 100%;
+            padding: 18px 25px 18px 60px;
+            border: 2px solid #E5E7EB;
+            border-radius: 14px;
+            font-size: 17px;
+            transition: all 0.3s ease;
+            background: var(--white);
+        }
+
+        .input-with-icon input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gradient-green);
+            color: var(--white);
+            border: none;
+            border-radius: 14px;
+            padding: 18px 40px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        /* Result Section */
+        .result-container {
+            margin-top: 35px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-box {
+            background: var(--light-green);
+            border-radius: 16px;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 6px solid var(--primary-green);
+            transition: all 0.3s ease;
+        }
+
+        .result-box:hover {
+            transform: translateX(5px);
+        }
+
+        .result-info h4 {
+            margin-bottom: 8px;
+            color: var(--text-dark);
+            font-size: 20px;
+        }
+
+        .result-info p {
+            color: var(--text-light);
+            font-size: 15px;
+        }
+
+        .short-url {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--deep-green);
+            word-break: break-all;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+.action-btn {
+            padding: 14px 24px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 16px;
+            min-width: 140px;
+        }
+
+        .copy-btn {
+            background: var(--gradient-green);
+            color: var(--white);
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .new-btn {
+            background: transparent;
+            border: 2px solid var(--primary-green);
+            color: var(--primary-green);
+        }
+
+        .new-btn:hover {
+            background: var(--light-green);
+            transform: translateY(-2px);
+        }
+
+        /* Features */
+        .features {
+            padding: 100px 0;
+            background: var(--white);
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-title h3 {
+            font-size: 40px;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .section-title p {
+            color: var(--text-light);
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 19px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            background: var(--gray-bg);
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.4s ease;
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-green);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--light-green);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            color: var(--primary-green);
+            font-size: 34px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+            background: var(--gradient-green);
+            color: white;
+            transform: rotate(5deg) scale(1.1);
+        }
+
+        .feature-card h4 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+        }
+
+        .feature-card p {
+            color: var(--text-light);
+            font-size: 16px;
+        }
+
+        /* Instructions */
+        .instructions {
+            padding: 100px 0;
+            background: var(--gray-bg);
+        }
+
+        .instructions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .instruction-step {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .instruction-step:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .step-number {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+
+height: 50px;
+            background: var(--gradient-green);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 800;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .instruction-step h4 {
+            font-size: 22px;
+            margin: 20px 0 15px;
+            color: var(--text-dark);
+        }
+
+        .instruction-step p {
+            color: var(--text-light);
+            font-size: 16px;
+        }
+
+        /* Stats */
+        .stats {
+            padding: 80px 0;
+            background: var(--white);
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .stat-number {
+            font-size: 56px;
+            font-weight: 800;
+            background: var(--gradient-green);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--text-dark);
+            color: var(--white);
+            padding: 70px 0 30px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 50px;
+            margin-bottom: 50px;
+        }
+
+        .footer-about .logo-text {
+            font-size: 28px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .footer-about p {
+            color: #D1D5DB;
+            margin-bottom: 25px;
+            font-size: 16px;
+        }
+
+        .footer-links h4, .footer-contact h4 {
+            font-size: 20px;
+            margin-bottom: 25px;
+            color: var(--white);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 14px;
+        }
+
+        .footer-links a {
+            color: #D1D5DB;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-green);
+        }
+
+        .footer-contact p {
+            color: #D1D5DB;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .footer-contact i {
+            color: var(--primary-green);
+            width: 20px;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .social-icons a {
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            background: var(--primary-green);
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid #374151;
+            color: #9CA3AF;
+            font-size: 15px;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero h2 {
+
+
+font-size: 40px;
+            }
+            
+            .shortener-container {
+                padding: 40px 30px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .action-btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            nav ul {
+                gap: 20px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .hero h2 {
+                font-size: 32px;
+            }
+            
+            .hero p {
+                font-size: 18px;
+            }
+            
+            .section-title h3 {
+                font-size: 32px;
+            }
+            
+            .stat-number {
+                font-size: 44px;
+            }
+            
+            .result-box {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 25px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero {
+                padding: 70px 0 40px;
+            }
+            
+            .shortener-container {
+                padding: 30px 20px;
+            }
+            
+            .features, .instructions, .stats {
+                padding: 70px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-content">
+            <a href="#" class="logo">
+                <div class="logo-icon">D</div>
+                <div class="logo-text">Deeplink</div>
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="#home">Главная</a></li>
+                    <li><a href="#features">Преимущества</a></li>
+                    <li><a href="#instructions">Инструкция</a></li>
+                    <li><a href="#stats">Статистика</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <h2>Глубокое сокращение ссылок для умного взаимодействия</h2>
+            <p>Превратите длинные и сложные URL в короткие, запоминающиеся и элегантные ссылки с нашим интеллектуальным сервисом Deeplink.</p>
+            
+            <!-- URL Shortener Form -->
+            <div class="shortener-container">
+                <div class="form-group">
+                    <label for="url-input">Введите длинную ссылку</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-link"></i>
+                        <input type="url" id="url-input" placeholder="https://example.com/очень-длинный-адрес-страницы-который-нужно-сократить">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="custom-alias">Пользовательский псевдоним (необязательно)</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-tag"></i>
+                        <input type="text" id="custom-alias" placeholder="моя-ссылка">
+                    </div>
+                    <p style="font-size: 15px; color: var(--text-light); margin-top: 8px;">Будет создана короткая ссылка: deeplink.ru/моя-ссылка</p>
+                </div>
+                
+                <button class="btn" id="shorten-btn">
+                    <i class="fas fa-bolt"></i> Создать Deeplink
+                </button>
+                
+                <!-- Result Section -->
+                <div class="result-container" id="result-container">
+                    <div class="result-box">
+
+
+<div class="result-info">
+                            <h4>Ваш Deeplink готов!</h4>
+                            <p>Короткая ссылка создана успешно:</p>
+                            <div class="short-url" id="short-url">https://deeplink.ru/abc123</div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn copy-btn" id="copy-btn">
+                                <i class="fas fa-copy"></i> Копировать
+                            </button>
+                            <button class="action-btn new-btn" id="new-btn">
+                                <i class="fas fa-plus-circle"></i> Новая ссылка
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-title">
+                <h3>Преимущества Deeplink</h3>
+                <p>Наш сервис предлагает инновационные возможности для эффективного управления ссылками</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h4>Мгновенное создание</h4>
+                    <p>Сокращайте ссылки в реальном времени без задержек. Получайте короткий URL сразу после отправки формы.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4>Безопасность и приватность</h4>
+                    <p>Все ваши ссылки защищены современными методами шифрования. Ваши данные остаются конфиденциальными.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-infinity"></i>
+                    </div>
+                    <h4>Неограниченное количество</h4>
+                    <p>Создавайте столько коротких ссылок, сколько вам нужно. Никаких лимитов и скрытых ограничений.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Instructions Section -->
+    <section class="instructions" id="instructions">
+        <div class="container">
+            <div class="section-title">
+                <h3>Простое использование</h3>
+                <p>Всего несколько шагов для создания идеальной короткой ссылки</p>
+            </div>
+            
+            <div class="instructions-grid">
+                <div class="instruction-step">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">
+                        <i class="fas fa-paste fa-3x" style="color: var(--primary-green);"></i>
+                    </div>
+                    <h4>Вставьте ссылку</h4>
+                    <p>Скопируйте и вставьте длинный URL-адрес в поле ввода на главной странице.</p>
+                </div>
+                
+                <div class="instruction-step">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">
+                        <i class="fas fa-magic fa-3x" style="color: var(--primary-green);"></i>
+                    </div>
+                    <h4>Настройте псевдоним</h4>
+                    <p>При желании укажите свой вариант короткой ссылки для лучшей запоминаемости.</p>
+                </div>
+                
+                <div class="instruction-step">
+                    <div class="step-number">3</div>
+
+
+<div class="step-icon">
+                        <i class="fas fa-bolt fa-3x" style="color: var(--primary-green);"></i>
+                    </div>
+                    <h4>Создайте Deeplink</h4>
+                    <p>Нажмите кнопку "Создать Deeplink" и получите вашу короткую ссылку мгновенно.</p>
+                </div>
+                
+                <div class="instruction-step">
+                    <div class="step-number">4</div>
+                    <div class="step-icon">
+                        <i class="fas fa-share-alt fa-3x" style="color: var(--primary-green);"></i>
+                    </div>
+                    <h4>Делитесь с миром</h4>
+                    <p>Используйте созданную короткую ссылку в социальных сетях, мессенджерах и email-рассылках.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats" id="stats">
+        <div class="container">
+            <div class="section-title">
+                <h3>Deeplink в цифрах</h3>
+                <p>Наш сервис уже помогает тысячам пользователей по всему миру</p>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-item">
+                    <div class="stat-number" id="links-created">150K+</div>
+                    <div class="stat-label">Создано ссылок</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-number" id="time-saved">2.5M+</div>
+                    <div class="stat-label">Минут сэкономлено</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-number" id="users">50K+</div>
+                    <div class="stat-label">Довольных пользователей</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-number" id="countries">120+</div>
+                    <div class="stat-label">Стран мира</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <div class="logo-text">Deeplink</div>
+                    <p>Интеллектуальный сервис для сокращения ссылок нового поколения. Быстро, безопасно, эффективно.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Навигация</h4>
+                    <ul>
+                        <li><a href="#home"><i class="fas fa-chevron-right"></i> Главная</a></li>
+                        <li><a href="#features"><i class="fas fa-chevron-right"></i> Преимущества</a></li>
+                        <li><a href="#instructions"><i class="fas fa-chevron-right"></i> Инструкция</a></li>
+                        <li><a href="#stats"><i class="fas fa-chevron-right"></i> Статистика</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-contact">
+                    <h4>Контакты</h4>
+                    <p><i class="fas fa-envelope"></i> support@deeplink.ru</p>
+                    <p><i class="fas fa-globe"></i> https://deeplink.ru</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Москва, Россия</p>
+                    <p><i class="fas fa-phone"></i> +7 (800) 555-35-35</p>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2023 Deeplink. Все права защищены. | Умное сокращение ссылок</p>
+            </div>
+        </div>
+    </footer>
+
+
+<script>
+        // DOM элементы
+        const urlInput = document.getElementById('url-input');
+        const customAlias = document.getElementById('custom-alias');
+        const shortenBtn = document.getElementById('shorten-btn');
+        const resultContainer = document.getElementById('result-container');
+        const shortUrlElement = document.getElementById('short-url');
+        const copyBtn = document.getElementById('copy-btn');
+        const newBtn = document.getElementById('new-btn');
+        
+        // Анимированные счетчики статистики
+        const linksCreated = document.getElementById('links-created');
+        const timeSaved = document.getElementById('time-saved');
+        const users = document.getElementById('users');
+        const countries = document.getElementById('countries');
+        
+        // Генерация случайного короткого кода
+        function generateShortCode(length = 6) {
+            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        
+        // Функция сокращения ссылки
+        function shortenUrl() {
+            const originalUrl = urlInput.value.trim();
+            const alias = customAlias.value.trim();
+            
+            // Валидация URL
+            if (!originalUrl) {
+                showNotification('Пожалуйста, введите URL для сокращения', 'error');
+                urlInput.focus();
+                return;
+            }
+            
+            try {
+                new URL(originalUrl);
+            } catch (e) {
+                showNotification('Пожалуйста, введите корректный URL (например, https://example.com)', 'error');
+                urlInput.focus();
+                return;
+            }
+            
+            // Генерация короткого кода
+            const shortCode = alias || generateShortCode();
+            const shortUrl = `https://deeplink.ru/${shortCode}`;
+            
+            // Показываем результат
+            shortUrlElement.textContent = shortUrl;
+            resultContainer.style.display = 'block';
+            
+            // Анимация появления
+            resultContainer.style.animation = 'none';
+            setTimeout(() => {
+                resultContainer.style.animation = 'fadeIn 0.5s ease';
+            }, 10);
+            
+            // Прокручиваем к результату
+            resultContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Увеличиваем счетчик созданных ссылок
+            animateCounter(linksCreated, 150000, 150000 + 1, 1000);
+            
+            // Показываем уведомление
+            showNotification('Deeplink успешно создан!', 'success');
+        }
+        
+        // Копирование короткой ссылки в буфер обмена
+        function copyToClipboard() {
+            const textToCopy = shortUrlElement.textContent;
+            
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    // Анимация кнопки
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i> Скопировано!';
+                    copyBtn.style.background = 'var(--dark-green)';
+                    
+                    showNotification('Ссылка скопирована в буфер обмена!', 'success');
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                        copyBtn.style.background = '';
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Ошибка при копировании: ', err);
+
+
+showNotification('Не удалось скопировать ссылку. Скопируйте ее вручную.', 'error');
+                });
+        }
+        
+        // Сброс формы для создания новой ссылки
+        function resetForm() {
+            urlInput.value = '';
+            customAlias.value = '';
+            resultContainer.style.display = 'none';
+            urlInput.focus();
+            showNotification('Готово к созданию новой ссылки!', 'info');
+        }
+        
+        // Показать уведомление
+        function showNotification(message, type) {
+            // Удаляем старое уведомление если есть
+            const oldNotification = document.querySelector('.notification');
+            if (oldNotification) {
+                oldNotification.remove();
+            }
+            
+            // Создаем новое уведомление
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = 
+                `<div style="position: fixed; top: 100px; right: 20px; background: ${type === 'error' ? '#FEE2E2' : type === 'success' ? '#D1FAE5' : '#DBEAFE'}; 
+                color: ${type === 'error' ? '#991B1B' : type === 'success' ? '#065F46' : '#1E40AF'}; 
+                padding: 16px 24px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+                z-index: 10000; display: flex; align-items: center; gap: 12px; font-weight: 600; border-left: 5px solid 
+                ${type === 'error' ? '#EF4444' : type === 'success' ? '#10B981' : '#3B82F6'};">
+                    <i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                    ${message}
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Автоматически скрываем через 4 секунды
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 4000);
+        }
+        
+        // Анимация счетчика
+        function animateCounter(element, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const value = Math.floor(progress * (end - start) + start);
+                element.textContent = value.toLocaleString() + '+';
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+        
+        // Инициализация анимированных счетчиков
+        function initCounters() {
+            // Запускаем анимацию счетчиков при загрузке
+            setTimeout(() => {
+                animateCounter(linksCreated, 0, 150000, 2000);
+                animateCounter(timeSaved, 0, 2500000, 2000);
+                animateCounter(users, 0, 50000, 2000);
+                animateCounter(countries, 0, 120, 2000);
+            }, 500);
+        }
+        
+        // Обработчики событий
+        shortenBtn.addEventListener('click', shortenUrl);
+        copyBtn.addEventListener('click', copyToClipboard);
+        newBtn.addEventListener('click', resetForm);
+        
+        // Разрешаем отправку формы по нажатию Enter
+        urlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') shortenUrl();
+        });
+        
+        customAlias.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') shortenUrl();
+        });
+        
+        // Плавная прокрутка для навигации
+        document.querySelectorAll('nav a, .footer-links a').forEach(anchor => {
